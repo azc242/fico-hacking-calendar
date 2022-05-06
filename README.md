@@ -17,3 +17,19 @@ To maximize the utilization section of your credit score, it is best to practice
 > Day 31: Pay off $3 statement balance, go back to Day 1 and start over.
 >
 > [Franholio](https://www.reddit.com/r/churning/comments/c7u1uv/comment/esixe7t/?utm_source=share&utm_medium=web2x&context=3) via Reddit
+
+### How to use the script
+I scheduled my Python (3.8) script to run as a cron job using Google Cloud Platform. You can check out a good guide on how to set this all up [for free here using GCP](https://towardsdatascience.com/how-to-schedule-a-python-script-on-google-cloud-721e331a9590). The frequency fo the cron job should be `0 9 * * *`, which will run the script daily at 9AM of whichever time zone you select in the GCP configuration.
+Note that this script currently sends an email each day as a sanity check that it runs properly. However, you can disable this simply by indenting the code block containing so that it is a part of the preceding `if` statement. Then, it will only send when action is required (AKA when it is the last weekdat day before your credit card provider calculates your statement).
+```
+msg.attach(MIMEText(email, 'html'))
+server = smtplib.SMTP("smtp.gmail.com", 587)
+server.ehlo()
+server.starttls()
+server.login(fromaddr, 'YOUR EMAIL PASSWORD HERE')
+text = msg.as_string()
+server.sendmail(fromaddr, [msg['To']], text)
+server.close()
+```
+
+Note that before using the script, please set up your billing cycles and cards in the `BILLING_CYCLES` dictionary in `reminder.py`. In addition, fill in your email details, as the default values will not work. 
