@@ -21,6 +21,7 @@ https://myaccount.google.com/lesssecureapps
 def send_email():
     msg = MIMEMultipart()
     fromaddr = 'YOUR EMAIL HERE'
+    password = 'fromaddr EMAIL PASSWORD HERE'
     msg['From'] = fromaddr
     msg['To'] = 'YOUR EMAIL HERE'
     msg['Subject'] = "Daily credit card cycle check"
@@ -65,7 +66,7 @@ def send_email():
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.ehlo()
     server.starttls()
-    server.login(fromaddr, 'YOUR EMAIL PASSWORD HERE')
+    server.login(fromaddr, password)
     text = msg.as_string()
     server.sendmail(fromaddr, [msg['To']], text)
     server.close()
