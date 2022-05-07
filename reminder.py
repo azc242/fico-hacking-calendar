@@ -27,16 +27,19 @@ def send_email(event, context):
         # month, and my Chase Freedom's first day of each cycle falls on the first day.
     }
 
-    # Returns datetime object of the last working day of a credit card cycle.
-    def find_last_working_day_of_cycle(cycle_first_day):
-        last_working_day = datetime(
+    def find_cycle_end_date(cycle_first_day):
+        last_day = datetime(
             cur_year, cur_month, cycle_first_day, 00, 00, 00
         ) - timedelta(days=1)
-        # if the last working day of the current cycle passed, then the upcoming cycle is for next month
-        if last_working_day < today:
-            last_working_day = datetime(
+        if last_day < today:
+            last_day = datetime(
                 cur_year, cur_month + 1, cycle_first_day, 00, 00, 00
             ) - timedelta(days=1)
+        return last_day
+
+    # Returns datetime object of the last working day of a credit card cycle.
+    def find_last_working_day_of_cycle(cycle_first_day):
+        last_working_day = find_cycle_end_date(cycle_first_day)
         while last_working_day.weekday() > 4:
             last_working_day = last_working_day - timedelta(days=1)
         return last_working_day
@@ -45,14 +48,15 @@ def send_email(event, context):
     days_until_next_action = 32
     for card in BILLING_CYCLES:
         last_working_day_of_cycle = find_last_working_day_of_cycle(BILLING_CYCLES[card])
+        last_day_of_cycle = find_cycle_end_date(BILLING_CYCLES[card])
         print(f"last day of working cycle for {card} is {last_working_day_of_cycle}")
         days_until_next_action = min(
             days_until_next_action, (last_working_day_of_cycle - today).days
         )
         if today == last_working_day_of_cycle:
-            email += f"Your <b>{card}</b> credit card's billing cycle is ending tomorrow<br><br><b>Pay off the card now to reduce utilization in your monthly statement.</b>"
+            email += f"Your <b>{card}</b> credit card's billing cycle is ending tomorrow, {calendar.month_name[last_working_day_of_cycle.month]} {last_working_day_of_cycle.day}.<br><br><b>Pay off the card now to reduce utilization in your monthly statement.</b>"
         else:
-            email += f"Your <b>{card}</b> credit card's billing cycle will end on day {BILLING_CYCLES[card]} of each month, which is in <b>{(last_working_day_of_cycle - today).days}</b> days.<br><br>"
+            email += f"Your <b>{card}</b> credit card's billing cycle will end on {calendar.month_name[last_day_of_cycle.month]} {last_day_of_cycle.day}.<br>The last weekday before that is on {calendar.month_name[last_working_day_of_cycle.month]} {last_working_day_of_cycle.day}, or in <b>{(last_working_day_of_cycle - today).days}</b> days.<br><br>"
     email += "</p>"
 
     print(f"Days until next action is required: {days_until_next_action}")
