@@ -1,10 +1,10 @@
 # FICO Hacking Reminder
 ## What's the purpose of this anyways?
-It's just to send you a reminder on the last weekday before your statement gets calculated.
+It's just to send you a reminder on the last weekday before your statement gets calculated. **This is different than setting up autopay/paying off a statement manually. I still suggest using autopay for paying bills on time, but the goal is to reduce the balance in your monthly credit card statements by paying off the card ahead of time.** This repository is for reminding you to do so on the last business day before your monthyl credit card cycle is up.
 
 To maximize the utilization section of your credit score, it is best to practice the $2/$3 rule (TL;DR: Have a little usage as possible while still being registered as having some usage. $2 is the sweet spot for most credit cards, but some like Discover will count $2 as having no overall usage in the billing cycle, so we use $3 for such cards).
 
-To best accomplish this, you should pay off all your cards **before** your credit card calculates the monthly statement except for 1 card. So when your FICO Credit score gets calculated, it sees you've used some of your credit line to count as having "usage", but your utilization is super low. This is key to maximizing your FICO score.
+To best accomplish this, you should pay off all your cards **before** your credit card calculates the monthly statement except for 1 card. So when your FICO Credit score gets calculated, it sees you've used some of your credit line to count as having "usage", but your utilization is super low. This is key to maximizing your FICO score. 
 
 > Your billing cycles might look like this: 
 > 
