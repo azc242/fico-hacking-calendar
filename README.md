@@ -1,18 +1,18 @@
-# FICO Hacking Calendar
-## What is this?
-A calendar file you can import to Google Calendar or Calendar that sets up a recurring event on the last weekday of each month, which is typically before the billing cycle closes and your credit card finalizes your billing statement.
-
-*Note that this will only work if your billing cycle does not end before the month is up. To my knowledge, it is not possible to set a recurring calendar event that occurs on the last weekday before the nth day of a month.*
+# FICO Hacking Reminder
 ## What's the purpose of this anyways?
+It's just to send you a reminder on the last weekday before your statement gets calculated.
+
 To maximize the utilization section of your credit score, it is best to practice the $2/$3 rule (TL;DR: Have a little usage as possible while still being registered as having some usage. $2 is the sweet spot for most credit cards, but some like Discover will count $2 as having no overall usage in the billing cycle, so we use $3 for such cards).
+
+To best accomplish this, you should pay off all your cards **before** your credit card calculates the monthly statement except for 1 card. So when your FICO Credit score gets calculated, it sees you've used some of your credit line to count as having "usage", but your utilization is super low. This is key to maximizing your FICO score.
 
 > Your billing cycles might look like this: 
 > 
-> Days 1-28: Use card normally
+> Days 1-28: Use card(s) normally
 > 
-> Day 29: Pay off entire balance minus $3 
+> Day 29: Pay off entire balance for all cards except one (for this one, pay off (balance - $3)) 
 > 
-> Day 30: End of statement, statement balance will be $3 
+> Day 30: End of statement, statement balance will be $3 for that card and $0 for all others 
 > 
 > Day 31: Pay off $3 statement balance, go back to Day 1 and start over.
 > 
