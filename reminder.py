@@ -1,31 +1,17 @@
 import calendar
 from datetime import datetime, timedelta
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email
+from python_http_client import exceptions
 
-'''
+"""
 Sends notification reminder to your email on the last business day before your
 credit card billing cycle(s) is up.
-Note that the sender email MUST be a gmail address.
+"""
 
-If you do not use Gmail, change the following line:
-server = smtplib.SMTP("smtp.gmail.com", 587)
-Find out the appropriate values for your email service with a quick Google search.
 
-You'll also need to allow less secure apps for Gmail or your email service if authentication fails
-https://myaccount.google.com/lesssecureapps
-'''
-
-def send_email():
-    msg = MIMEMultipart()
-    fromaddr = 'YOUR EMAIL HERE'
-    password = 'fromaddr EMAIL PASSWORD HERE'
-    msg['From'] = fromaddr
-    msg['To'] = 'YOUR EMAIL HERE'
-    msg['Subject'] = "Daily credit card cycle check"
-
+def send_email(event, context):
     today = datetime.now()
     cur_year = today.year
     cur_month = today.month
@@ -34,43 +20,68 @@ def send_email():
 
     # Set this to the FIRST day of your each billing cycle.
     BILLING_CYCLES = {
-    'Discover IT': 4,
-    'Chase Freedom': 1
-    # Add modify or add more cards in this format 'Name': first day of billing cycle
-    # Above, my Discover IT card has its first day of the cycle on the 3th of each
-    # month, and my Chase Freedom's last day of each cycle falls on the first day.
+        "Discover IT": 6,
+        "Chase Freedom": 1
+        # Add modify or add more cards in this format 'Name': first day of billing cycle
+        # Above, my Discover IT card has its first day of the cycle on the 6th of each
+        # month, and my Chase Freedom's first day of each cycle falls on the first day.
     }
 
     # Returns datetime object of the last working day of a credit card cycle.
     def find_last_working_day_of_cycle(cycle_first_day):
-        last_working_day = datetime(cur_year, cur_month, cycle_first_day, 00, 00, 00) - timedelta(days = 1)
+        last_working_day = datetime(
+            cur_year, cur_month, cycle_first_day, 00, 00, 00
+        ) - timedelta(days=1)
+        # if the last working day of the current cycle passed, then the upcoming cycle is for next month
+        if last_working_day < today:
+            last_working_day = datetime(
+                cur_year, cur_month + 1, cycle_first_day, 00, 00, 00
+            ) - timedelta(days=1)
         while last_working_day.weekday() > 4:
-            last_working_day = last_working_day - timedelta(days = 1)
-            print("test")
+            last_working_day = last_working_day - timedelta(days=1)
         return last_working_day
 
-    email = "Notice(s):<br/><br/><p>"
-    action_needed = False
+    email = "<h3>Notice(s):</h3><br/><p>"
+    days_until_next_action = 32
     for card in BILLING_CYCLES:
-        if today == find_last_working_day_of_cycle(BILLING_CYCLES[card]):
-            email += "Your <b>{credit_card}</b> credit card's billing cycle is ending tomorrow<br><br>".format(credit_card = card)
-            action_needed = True
+        last_working_day_of_cycle = find_last_working_day_of_cycle(BILLING_CYCLES[card])
+        print(f"last day of working cycle for {card} is {last_working_day_of_cycle}")
+        days_until_next_action = min(
+            days_until_next_action, (last_working_day_of_cycle - today).days
+        )
+        if today == last_working_day_of_cycle:
+            email += f"Your <b>{card}</b> credit card's billing cycle is ending tomorrow<br><br><b>Pay off the card now to reduce utilization in your monthly statement.</b>"
         else:
-            email += "Your <b>{credit_card}</b> credit card's billing cycle will end on day {end_date} of each month.<br><br>".format(credit_card = card, end_date = BILLING_CYCLES[card])
+            email += f"Your <b>{card}</b> credit card's billing cycle will end on day {BILLING_CYCLES[card]} of each month, which is in <b>{(last_working_day_of_cycle - today).days}</b> days.<br><br>"
     email += "</p>"
 
-    if action_needed:
-        msg['Subject'] = '[ACTION REQUIRED] Credit card cycle check'
+    print(f"Days until next action is required: {days_until_next_action}")
 
-    msg.attach(MIMEText(email, 'html'))
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.ehlo()
-    server.starttls()
-    server.login(fromaddr, password)
-    text = msg.as_string()
-    server.sendmail(fromaddr, [msg['To']], text)
-    server.close()
+    email_subject = f"{days_until_next_action} Days Until Next Billing Cycle Ends"
+    if days_until_next_action == 0:  # implies that a billing cycle ends today
+        email_subject = "[ACTION REQUIRED] Credit card cycle check"
 
-    print("Email sent successfully!")
+    # You will need to set up your SendGrid API Key
+    sg = SendGridAPIClient(os.environ["SENDGRID_API_KEY"])
+    message = Mail(
+        to_emails="YOUR EMAIL",
+        from_email=Email("YOUR EMAIL", "YOUR NAME"),
+        subject=email_subject,
+        html_content=email,
+    )
+    # message.add_bcc("YOUR ALT EMAIL HERE") # Optional, note that this cannot be the same as your to_emails email
 
-send_email()
+    try:
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+        # Expected 202 Accepted
+
+    except exceptions.BadRequestsError as e:
+        print(e.body)
+        exit()
+
+    except exceptions.HTTPError as e:
+        print(e.body)
+        exit()
